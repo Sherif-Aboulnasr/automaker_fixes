@@ -7,6 +7,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const fs = require("fs/promises");
 const agentService = require("./agent-service");
 const autoModeService = require("./auto-mode-service");
+const worktreeManager = require("./services/worktree-manager");
 
 let mainWindow = null;
 
@@ -468,7 +469,7 @@ ipcMain.handle("auto-mode:status", () => {
  */
 ipcMain.handle(
   "auto-mode:run-feature",
-  async (_, { projectPath, featureId }) => {
+  async (_, { projectPath, featureId, useWorktrees = false }) => {
     try {
       const sendToRenderer = (data) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -480,6 +481,7 @@ ipcMain.handle(
         projectPath,
         featureId,
         sendToRenderer,
+        useWorktrees,
       });
     } catch (error) {
       console.error("[IPC] auto-mode:run-feature error:", error);
@@ -931,6 +933,30 @@ ipcMain.handle("worktree:get-file-diff", async (_, { projectPath, featureId, fil
     return await autoModeService.getFileDiff({ projectPath, featureId, filePath });
   } catch (error) {
     console.error("[IPC] worktree:get-file-diff error:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get file diffs for the main project (non-worktree)
+ */
+ipcMain.handle("git:get-diffs", async (_, { projectPath }) => {
+  try {
+    return await worktreeManager.getFileDiffs(projectPath);
+  } catch (error) {
+    console.error("[IPC] git:get-diffs error:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+/**
+ * Get diff for a specific file in the main project (non-worktree)
+ */
+ipcMain.handle("git:get-file-diff", async (_, { projectPath, filePath }) => {
+  try {
+    return await worktreeManager.getFileDiff(projectPath, filePath);
+  } catch (error) {
+    console.error("[IPC] git:get-file-diff error:", error);
     return { success: false, error: error.message };
   }
 });

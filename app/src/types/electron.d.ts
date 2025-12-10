@@ -229,7 +229,7 @@ export interface AutoModeAPI {
     error?: string;
   }>;
 
-  runFeature: (projectPath: string, featureId: string) => Promise<{
+  runFeature: (projectPath: string, featureId: string, useWorktrees?: boolean) => Promise<{
     success: boolean;
     passes?: boolean;
     error?: string;
@@ -386,6 +386,9 @@ export interface ElectronAPI {
 
   // Worktree Management APIs
   worktree: WorktreeAPI;
+
+  // Git Operations APIs (for non-worktree operations)
+  git: GitAPI;
 }
 
 export interface WorktreeInfo {
@@ -468,6 +471,14 @@ export interface WorktreeAPI {
 
   // Get diff for a specific file in a worktree
   getFileDiff: (projectPath: string, featureId: string, filePath: string) => Promise<FileDiffResult>;
+}
+
+export interface GitAPI {
+  // Get diffs for the main project (not a worktree)
+  getDiffs: (projectPath: string) => Promise<FileDiffsResult>;
+
+  // Get diff for a specific file in the main project
+  getFileDiff: (projectPath: string, filePath: string) => Promise<FileDiffResult>;
 }
 
 // Model definition type

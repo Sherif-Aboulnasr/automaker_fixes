@@ -42,14 +42,14 @@ export interface StatResult {
 }
 
 // Auto Mode types - Import from electron.d.ts to avoid duplication
-import type { AutoModeEvent, ModelDefinition, ProviderStatus, WorktreeAPI, WorktreeInfo, WorktreeStatus, FileDiffsResult, FileDiffResult, FileStatus } from "@/types/electron";
+import type { AutoModeEvent, ModelDefinition, ProviderStatus, WorktreeAPI, GitAPI, WorktreeInfo, WorktreeStatus, FileDiffsResult, FileDiffResult, FileStatus } from "@/types/electron";
 
 export interface AutoModeAPI {
   start: (projectPath: string, maxConcurrency?: number) => Promise<{ success: boolean; error?: string }>;
   stop: () => Promise<{ success: boolean; error?: string }>;
   stopFeature: (featureId: string) => Promise<{ success: boolean; error?: string }>;
   status: () => Promise<{ success: boolean; isRunning?: boolean; currentFeatureId?: string | null; runningFeatures?: string[]; error?: string }>;
-  runFeature: (projectPath: string, featureId: string) => Promise<{ success: boolean; passes?: boolean; error?: string }>;
+  runFeature: (projectPath: string, featureId: string, useWorktrees?: boolean) => Promise<{ success: boolean; passes?: boolean; error?: string }>;
   verifyFeature: (projectPath: string, featureId: string) => Promise<{ success: boolean; passes?: boolean; error?: string }>;
   resumeFeature: (projectPath: string, featureId: string) => Promise<{ success: boolean; passes?: boolean; error?: string }>;
   contextExists: (projectPath: string, featureId: string) => Promise<{ success: boolean; exists?: boolean; error?: string }>;
@@ -129,6 +129,7 @@ export interface ElectronAPI {
     error?: string;
   }>;
   worktree?: WorktreeAPI;
+  git?: GitAPI;
 }
 
 declare global {
@@ -426,6 +427,9 @@ export const getElectronAPI = (): ElectronAPI => {
 
     // Mock Worktree API
     worktree: createMockWorktreeAPI(),
+
+    // Mock Git API (for non-worktree operations)
+    git: createMockGitAPI(),
   };
 };
 
@@ -486,6 +490,33 @@ function createMockWorktreeAPI(): WorktreeAPI {
 
     getFileDiff: async (projectPath: string, featureId: string, filePath: string) => {
       console.log("[Mock] Getting file diff:", { projectPath, featureId, filePath });
+      return {
+        success: true,
+        diff: `diff --git a/${filePath} b/${filePath}\n+++ new file\n@@ -0,0 +1,5 @@\n+// New content`,
+        filePath,
+      };
+    },
+  };
+}
+
+// Mock Git API implementation (for non-worktree operations)
+function createMockGitAPI(): GitAPI {
+  return {
+    getDiffs: async (projectPath: string) => {
+      console.log("[Mock] Getting git diffs for project:", { projectPath });
+      return {
+        success: true,
+        diff: "diff --git a/src/feature.ts b/src/feature.ts\n+++ new file\n@@ -0,0 +1,10 @@\n+export function feature() {\n+  return 'hello';\n+}",
+        files: [
+          { status: "A", path: "src/feature.ts", statusText: "Added" },
+          { status: "M", path: "README.md", statusText: "Modified" },
+        ],
+        hasChanges: true,
+      };
+    },
+
+    getFileDiff: async (projectPath: string, filePath: string) => {
+      console.log("[Mock] Getting git file diff:", { projectPath, filePath });
       return {
         success: true,
         diff: `diff --git a/${filePath} b/${filePath}\n+++ new file\n@@ -0,0 +1,5 @@\n+// New content`,
@@ -563,11 +594,12 @@ function createMockAutoModeAPI(): AutoModeAPI {
       };
     },
 
-    runFeature: async (projectPath: string, featureId: string) => {
+    runFeature: async (projectPath: string, featureId: string, useWorktrees?: boolean) => {
       if (mockRunningFeatures.has(featureId)) {
         return { success: false, error: `Feature ${featureId} is already running` };
       }
 
+      console.log(`[Mock] Running feature ${featureId} with useWorktrees: ${useWorktrees}`);
       mockRunningFeatures.add(featureId);
       simulateAutoModeLoop(projectPath, featureId);
 

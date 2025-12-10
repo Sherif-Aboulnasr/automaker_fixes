@@ -25,6 +25,8 @@ interface GitDiffPanelProps {
   className?: string;
   /** Whether to show the panel in a compact/minimized state initially */
   compact?: boolean;
+  /** Whether worktrees are enabled - if false, shows diffs from main project */
+  useWorktrees?: boolean;
 }
 
 interface ParsedDiffHunk {
@@ -334,6 +336,7 @@ export function GitDiffPanel({
   featureId,
   className,
   compact = true,
+  useWorktrees = false,
 }: GitDiffPanelProps) {
   const [isExpanded, setIsExpanded] = useState(!compact);
   const [isLoading, setIsLoading] = useState(false);
@@ -347,23 +350,38 @@ export function GitDiffPanel({
     setError(null);
     try {
       const api = getElectronAPI();
-      if (!api?.worktree?.getDiffs) {
-        throw new Error("Worktree API not available");
-      }
 
-      const result = await api.worktree.getDiffs(projectPath, featureId);
-      if (result.success) {
-        setFiles(result.files || []);
-        setDiffContent(result.diff || "");
+      // Use worktree API if worktrees are enabled, otherwise use git API for main project
+      if (useWorktrees) {
+        if (!api?.worktree?.getDiffs) {
+          throw new Error("Worktree API not available");
+        }
+        const result = await api.worktree.getDiffs(projectPath, featureId);
+        if (result.success) {
+          setFiles(result.files || []);
+          setDiffContent(result.diff || "");
+        } else {
+          setError(result.error || "Failed to load diffs");
+        }
       } else {
-        setError(result.error || "Failed to load diffs");
+        // Use git API for main project diffs
+        if (!api?.git?.getDiffs) {
+          throw new Error("Git API not available");
+        }
+        const result = await api.git.getDiffs(projectPath);
+        if (result.success) {
+          setFiles(result.files || []);
+          setDiffContent(result.diff || "");
+        } else {
+          setError(result.error || "Failed to load diffs");
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load diffs");
     } finally {
       setIsLoading(false);
     }
-  }, [projectPath, featureId]);
+  }, [projectPath, featureId, useWorktrees]);
 
   // Load diffs when expanded
   useEffect(() => {

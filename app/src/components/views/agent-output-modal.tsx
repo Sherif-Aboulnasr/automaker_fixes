@@ -12,6 +12,7 @@ import { Loader2, List, FileText, GitBranch } from "lucide-react";
 import { getElectronAPI } from "@/lib/electron";
 import { LogViewer } from "@/components/ui/log-viewer";
 import { GitDiffPanel } from "@/components/ui/git-diff-panel";
+import { useAppStore } from "@/store/app-store";
 import type { AutoModeEvent } from "@/types/electron";
 
 interface AgentOutputModalProps {
@@ -39,6 +40,7 @@ export function AgentOutputModal({
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoScrollRef = useRef(true);
   const projectPathRef = useRef<string>("");
+  const useWorktrees = useAppStore((state) => state.useWorktrees);
 
   // Auto-scroll to bottom when output changes
   useEffect(() => {
@@ -303,6 +305,7 @@ export function AgentOutputModal({
                 projectPath={projectPath}
                 featureId={featureId}
                 compact={false}
+                useWorktrees={useWorktrees}
                 className="border-0 rounded-lg"
               />
             ) : (

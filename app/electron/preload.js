@@ -97,8 +97,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     status: () => ipcRenderer.invoke("auto-mode:status"),
 
     // Run a specific feature
-    runFeature: (projectPath, featureId) =>
-      ipcRenderer.invoke("auto-mode:run-feature", { projectPath, featureId }),
+    runFeature: (projectPath, featureId, useWorktrees) =>
+      ipcRenderer.invoke("auto-mode:run-feature", { projectPath, featureId, useWorktrees }),
 
     // Verify a specific feature by running its tests
     verifyFeature: (projectPath, featureId) =>
@@ -188,6 +188,17 @@ contextBridge.exposeInMainWorld("electronAPI", {
     // Get diff for a specific file in a worktree
     getFileDiff: (projectPath, featureId, filePath) =>
       ipcRenderer.invoke("worktree:get-file-diff", { projectPath, featureId, filePath }),
+  },
+
+  // Git Operations APIs (for non-worktree operations)
+  git: {
+    // Get file diffs for the main project
+    getDiffs: (projectPath) =>
+      ipcRenderer.invoke("git:get-diffs", { projectPath }),
+
+    // Get diff for a specific file in the main project
+    getFileDiff: (projectPath, filePath) =>
+      ipcRenderer.invoke("git:get-file-diff", { projectPath, filePath }),
   },
 });
 

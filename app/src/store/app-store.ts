@@ -168,6 +168,9 @@ export interface AppState {
   // Feature Default Settings
   defaultSkipTests: boolean; // Default value for skip tests when creating new features
 
+  // Worktree Settings
+  useWorktrees: boolean; // Whether to use git worktree isolation for features (default: false)
+
   // AI Profiles
   aiProfiles: AIProfile[];
 }
@@ -254,6 +257,9 @@ export interface AppActions {
 
   // Feature Default Settings actions
   setDefaultSkipTests: (skip: boolean) => void;
+
+  // Worktree Settings actions
+  setUseWorktrees: (enabled: boolean) => void;
 
   // AI Profile actions
   addAIProfile: (profile: Omit<AIProfile, "id">) => void;
@@ -343,6 +349,7 @@ const initialState: AppState = {
   maxConcurrency: 3, // Default to 3 concurrent agents
   kanbanCardDetailLevel: "standard", // Default to standard detail level
   defaultSkipTests: false, // Default to TDD mode (tests enabled)
+  useWorktrees: false, // Default to disabled (worktree feature is experimental)
   aiProfiles: DEFAULT_AI_PROFILES,
 };
 
@@ -672,6 +679,9 @@ export const useAppStore = create<AppState & AppActions>()(
       // Feature Default Settings actions
       setDefaultSkipTests: (skip) => set({ defaultSkipTests: skip }),
 
+      // Worktree Settings actions
+      setUseWorktrees: (enabled) => set({ useWorktrees: enabled }),
+
       // AI Profile actions
       addAIProfile: (profile) => {
         const id = `profile-${Date.now()}-${Math.random()
@@ -721,6 +731,7 @@ export const useAppStore = create<AppState & AppActions>()(
         maxConcurrency: state.maxConcurrency,
         kanbanCardDetailLevel: state.kanbanCardDetailLevel,
         defaultSkipTests: state.defaultSkipTests,
+        useWorktrees: state.useWorktrees,
         aiProfiles: state.aiProfiles,
       }),
     }

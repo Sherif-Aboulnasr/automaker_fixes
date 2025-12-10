@@ -46,8 +46,18 @@ class AutoModeService {
   /**
    * Setup worktree for a feature
    * Creates an isolated git worktree where the agent can work
+   * @param {Object} feature - The feature object
+   * @param {string} projectPath - Path to the project
+   * @param {Function} sendToRenderer - Function to send events to the renderer
+   * @param {boolean} useWorktreesEnabled - Whether worktrees are enabled in settings (default: false)
    */
-  async setupWorktreeForFeature(feature, projectPath, sendToRenderer) {
+  async setupWorktreeForFeature(feature, projectPath, sendToRenderer, useWorktreesEnabled = false) {
+    // If worktrees are disabled in settings, skip entirely
+    if (!useWorktreesEnabled) {
+      console.log(`[AutoMode] Worktrees disabled in settings, working directly on main project`);
+      return { useWorktree: false, workPath: projectPath };
+    }
+
     // Check if worktrees are enabled (project must be a git repo)
     const isGit = await worktreeManager.isGitRepo(projectPath);
     if (!isGit) {
@@ -164,14 +174,18 @@ class AutoModeService {
 
   /**
    * Run a specific feature by ID
+   * @param {string} projectPath - Path to the project
+   * @param {string} featureId - ID of the feature to run
+   * @param {Function} sendToRenderer - Function to send events to renderer
+   * @param {boolean} useWorktrees - Whether to use git worktree isolation (default: false)
    */
-  async runFeature({ projectPath, featureId, sendToRenderer }) {
+  async runFeature({ projectPath, featureId, sendToRenderer, useWorktrees = false }) {
     // Check if this specific feature is already running
     if (this.runningFeatures.has(featureId)) {
       throw new Error(`Feature ${featureId} is already running`);
     }
 
-    console.log(`[AutoMode] Running specific feature: ${featureId}`);
+    console.log(`[AutoMode] Running specific feature: ${featureId} (worktrees: ${useWorktrees})`);
 
     // Register this feature as running
     const execution = this.createExecutionContext(featureId);
@@ -190,8 +204,8 @@ class AutoModeService {
 
       console.log(`[AutoMode] Running feature: ${feature.description}`);
 
-      // Setup worktree for isolated work
-      const worktreeSetup = await this.setupWorktreeForFeature(feature, projectPath, sendToRenderer);
+      // Setup worktree for isolated work (if enabled)
+      const worktreeSetup = await this.setupWorktreeForFeature(feature, projectPath, sendToRenderer, useWorktrees);
       execution.worktreePath = worktreeSetup.workPath;
       execution.branchName = worktreeSetup.branchName;
 
@@ -621,8 +635,12 @@ class AutoModeService {
 
   /**
    * Start a feature asynchronously (similar to drag operation)
+   * @param {Object} feature - The feature to start
+   * @param {string} projectPath - Path to the project
+   * @param {Function} sendToRenderer - Function to send events to renderer
+   * @param {boolean} useWorktrees - Whether to use git worktree isolation (default: false)
    */
-  async startFeatureAsync(feature, projectPath, sendToRenderer) {
+  async startFeatureAsync(feature, projectPath, sendToRenderer, useWorktrees = false) {
     const featureId = feature.id;
 
     // Skip if already running
@@ -633,7 +651,7 @@ class AutoModeService {
 
     try {
       console.log(
-        `[AutoMode] Starting feature: ${feature.description.slice(0, 50)}...`
+        `[AutoMode] Starting feature: ${feature.description.slice(0, 50)}... (worktrees: ${useWorktrees})`
       );
 
       // Register this feature as running
@@ -642,8 +660,8 @@ class AutoModeService {
       execution.sendToRenderer = sendToRenderer;
       this.runningFeatures.set(featureId, execution);
 
-      // Setup worktree for isolated work
-      const worktreeSetup = await this.setupWorktreeForFeature(feature, projectPath, sendToRenderer);
+      // Setup worktree for isolated work (if enabled)
+      const worktreeSetup = await this.setupWorktreeForFeature(feature, projectPath, sendToRenderer, useWorktrees);
       execution.worktreePath = worktreeSetup.workPath;
       execution.branchName = worktreeSetup.branchName;
 

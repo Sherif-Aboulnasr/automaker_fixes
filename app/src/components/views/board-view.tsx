@@ -184,6 +184,7 @@ export function BoardView() {
     maxConcurrency,
     setMaxConcurrency,
     defaultSkipTests,
+    useWorktrees,
     aiProfiles,
   } = useAppStore();
   const [activeFeature, setActiveFeature] = useState<Feature | null>(null);
@@ -849,7 +850,8 @@ export function BoardView() {
       // Call the API to run this specific feature by ID
       const result = await api.autoMode.runFeature(
         currentProject.path,
-        feature.id
+        feature.id,
+        useWorktrees
       );
 
       if (result.success) {
