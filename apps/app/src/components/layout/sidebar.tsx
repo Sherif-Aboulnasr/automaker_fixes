@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore, formatShortcut } from "@/store/app-store";
 import { CoursePromoBadge } from "@/components/ui/course-promo-badge";
+import { IS_MARKETING } from "@/config/app-config";
 import {
   FolderOpen,
   Plus,
@@ -366,7 +367,7 @@ export function Sidebar() {
       if (
         event.type === "auto_mode_feature_complete" ||
         event.type === "auto_mode_error" ||
-        event.type === "auto_mode_feature_started"
+        event.type === "auto_mode_feature_start"
       ) {
         const fetchRunningAgentsCount = async () => {
           try {
@@ -853,7 +854,15 @@ export function Sidebar() {
                 sidebarOpen ? "hidden lg:block" : "hidden"
               )}
             >
-              Auto<span className="text-brand-500">maker</span>
+              {IS_MARKETING ? (
+                <>
+                  https://<span className="text-brand-500">automaker</span>.app
+                </>
+              ) : (
+                <>
+                  Auto<span className="text-brand-500">maker</span>
+                </>
+              )}
             </span>
           </div>
           {/* Bug Report Button */}
