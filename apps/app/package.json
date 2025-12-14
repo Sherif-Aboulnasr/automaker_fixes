@@ -95,6 +95,7 @@
     "appId": "com.automaker.app",
     "productName": "Automaker",
     "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "afterPack": "./scripts/rebuild-server-natives.js",
     "directories": {
       "output": "dist"
     },
@@ -112,6 +113,10 @@
       {
         "from": "server-bundle/node_modules",
         "to": "server/node_modules"
+      },
+      {
+        "from": "server-bundle/package.json",
+        "to": "server/package.json"
       },
       {
         "from": "../../.env",

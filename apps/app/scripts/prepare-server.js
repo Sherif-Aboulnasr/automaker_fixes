@@ -64,4 +64,18 @@ execSync('npm install --omit=dev', {
   }
 });
 
+// Step 6: Rebuild native modules for current architecture
+// This is critical for modules like node-pty that have native bindings
+console.log('🔨 Rebuilding native modules for current architecture...');
+try {
+  execSync('npm rebuild', {
+    cwd: BUNDLE_DIR,
+    stdio: 'inherit'
+  });
+  console.log('✅ Native modules rebuilt successfully');
+} catch (error) {
+  console.warn('⚠️  Warning: Failed to rebuild native modules. Terminal functionality may not work.');
+  console.warn('   Error:', error.message);
+}
+
 console.log('\n✅ Server prepared for bundling at:', BUNDLE_DIR);

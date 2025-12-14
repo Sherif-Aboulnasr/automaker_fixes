@@ -26,17 +26,34 @@ let staticServer = null;
 const SERVER_PORT = 3008;
 const STATIC_PORT = 3007;
 
-// Get icon path - works in both dev and production
+// Get icon path - works in both dev and production, cross-platform
 function getIconPath() {
-  return app.isPackaged
-    ? path.join(process.resourcesPath, "app", "public", "logo.png")
-    : path.join(__dirname, "../public/logo.png");
+  // Different icon formats for different platforms
+  let iconFile;
+  if (process.platform === "win32") {
+    iconFile = "icon.ico";
+  } else if (process.platform === "darwin") {
+    iconFile = "logo_larger.png";
+  } else {
+    // Linux
+    iconFile = "logo_larger.png";
+  }
+
+  const iconPath = path.join(__dirname, "../public", iconFile);
+
+  // Verify the icon exists
+  if (!fs.existsSync(iconPath)) {
+    console.warn(`[Electron] Icon not found at: ${iconPath}`);
+    return null;
+  }
+
+  return iconPath;
 }
 
 /**
  * Start static file server for production builds
  */
-function startStaticServer() {
+async function startStaticServer() {
   const staticPath = path.join(__dirname, "../out");
 
   staticServer = http.createServer((request, response) => {
@@ -89,8 +106,15 @@ function startStaticServer() {
     });
   });
 
-  staticServer.listen(STATIC_PORT, () => {
-    console.log(`[Electron] Static server running at http://localhost:${STATIC_PORT}`);
+  return new Promise((resolve, reject) => {
+    staticServer.listen(STATIC_PORT, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        console.log(`[Electron] Static server running at http://localhost:${STATIC_PORT}`);
+        resolve();
+      }
+    });
   });
 }
 
@@ -233,12 +257,12 @@ async function waitForServer(maxAttempts = 30) {
  * Create the main window
  */
 function createWindow() {
-  mainWindow = new BrowserWindow({
+  const iconPath = getIconPath();
+  const windowOptions = {
     width: 1400,
     height: 900,
     minWidth: 1024,
     minHeight: 700,
-    icon: getIconPath(),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -246,7 +270,14 @@ function createWindow() {
     },
     titleBarStyle: "hiddenInset",
     backgroundColor: "#0a0a0a",
-  });
+  };
+
+  // Only set icon if it exists
+  if (iconPath) {
+    windowOptions.icon = iconPath;
+  }
+
+  mainWindow = new BrowserWindow(windowOptions);
 
   // Load Next.js dev server in development or static server in production
   const isDev = !app.isPackaged;
@@ -270,13 +301,20 @@ function createWindow() {
 app.whenReady().then(async () => {
   // Set app icon (dock icon on macOS)
   if (process.platform === "darwin" && app.dock) {
-    app.dock.setIcon(getIconPath());
+    const iconPath = getIconPath();
+    if (iconPath) {
+      try {
+        app.dock.setIcon(iconPath);
+      } catch (error) {
+        console.warn("[Electron] Failed to set dock icon:", error.message);
+      }
+    }
   }
 
   try {
     // Start static file server in production
     if (app.isPackaged) {
-      startStaticServer();
+      await startStaticServer();
     }
 
     // Start backend server
