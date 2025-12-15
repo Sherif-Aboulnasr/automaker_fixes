@@ -51,6 +51,8 @@ function SheetContent({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
+  children?: React.ReactNode
+  className?: string
 }) {
   return (
     <SheetPortal>

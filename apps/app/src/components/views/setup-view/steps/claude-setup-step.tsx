@@ -542,33 +542,35 @@ export function ClaudeSetupStep({
                   </div>
                 )}
 
-                {/* CLI Verify Button */}
-                <Button
-                  onClick={verifyCliAuth}
-                  disabled={
-                    cliVerificationStatus === "verifying" ||
-                    !claudeCliStatus?.installed
-                  }
-                  className="w-full bg-brand-500 hover:bg-brand-600 text-white"
-                  data-testid="verify-cli-button"
-                >
-                  {cliVerificationStatus === "verifying" ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : cliVerificationStatus === "error" ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Retry Verification
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-4 h-4 mr-2" />
-                      Verify CLI Authentication
-                    </>
-                  )}
-                </Button>
+                {/* CLI Verify Button - Hide if CLI is verified */}
+                {cliVerificationStatus !== "verified" && (
+                  <Button
+                    onClick={verifyCliAuth}
+                    disabled={
+                      cliVerificationStatus === "verifying" ||
+                      !claudeCliStatus?.installed
+                    }
+                    className="w-full bg-brand-500 hover:bg-brand-600 text-white"
+                    data-testid="verify-cli-button"
+                  >
+                    {cliVerificationStatus === "verifying" ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : cliVerificationStatus === "error" ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Retry Verification
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        Verify CLI Authentication
+                      </>
+                    )}
+                  </Button>
+                )}
               </AccordionContent>
             </AccordionItem>
 
@@ -704,32 +706,34 @@ export function ClaudeSetupStep({
                     </div>
                   )}
 
-                {/* API Key Verify Button */}
-                <Button
-                  onClick={verifyApiKeyAuth}
-                  disabled={
-                    apiKeyVerificationStatus === "verifying" || !hasApiKey
-                  }
-                  className="w-full bg-brand-500 hover:bg-brand-600 text-white"
-                  data-testid="verify-api-key-button"
-                >
-                  {apiKeyVerificationStatus === "verifying" ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : apiKeyVerificationStatus === "error" ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Retry Verification
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-4 h-4 mr-2" />
-                      Verify API Key
-                    </>
-                  )}
-                </Button>
+                {/* API Key Verify Button - Hide if API key is verified */}
+                {apiKeyVerificationStatus !== "verified" && (
+                  <Button
+                    onClick={verifyApiKeyAuth}
+                    disabled={
+                      apiKeyVerificationStatus === "verifying" || !hasApiKey
+                    }
+                    className="w-full bg-brand-500 hover:bg-brand-600 text-white"
+                    data-testid="verify-api-key-button"
+                  >
+                    {apiKeyVerificationStatus === "verifying" ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : apiKeyVerificationStatus === "error" ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Retry Verification
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        Verify API Key
+                      </>
+                    )}
+                  </Button>
+                )}
               </AccordionContent>
             </AccordionItem>
           </Accordion>
