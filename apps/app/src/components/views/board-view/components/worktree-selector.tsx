@@ -305,38 +305,6 @@ export function WorktreeSelector({
                 })()}
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-                Sync
-              </DropdownMenuLabel>
-              {/* Pull option */}
-              <DropdownMenuItem
-                onClick={() => handlePull(worktree)}
-                disabled={isPulling}
-                className="text-xs"
-              >
-                <Download className={cn("w-3.5 h-3.5 mr-2", isPulling && "animate-pulse")} />
-                {isPulling ? "Pulling..." : "Pull"}
-                {behindCount > 0 && (
-                  <span className="ml-auto text-[10px] bg-muted px-1.5 py-0.5 rounded">
-                    {behindCount} behind
-                  </span>
-                )}
-              </DropdownMenuItem>
-              {/* Push option */}
-              <DropdownMenuItem
-                onClick={() => handlePush(worktree)}
-                disabled={isPushing || aheadCount === 0}
-                className="text-xs"
-              >
-                <Upload className={cn("w-3.5 h-3.5 mr-2", isPushing && "animate-pulse")} />
-                {isPushing ? "Pushing..." : "Push"}
-                {aheadCount > 0 && (
-                  <span className="ml-auto text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">
-                    {aheadCount} ahead
-                  </span>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onCreateBranch(worktree)}
                 className="text-xs"
@@ -368,7 +336,11 @@ export function WorktreeSelector({
         )}
 
         {/* Actions dropdown */}
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={(open) => {
+          if (open) {
+            fetchBranches(worktree.path);
+          }
+        }}>
           <DropdownMenuTrigger asChild>
             <Button
               variant={isSelected ? "default" : "ghost"}
@@ -382,7 +354,36 @@ export function WorktreeSelector({
               <MoreHorizontal className="w-3 h-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
+          <DropdownMenuContent align="start" className="w-56">
+            {/* Pull option */}
+            <DropdownMenuItem
+              onClick={() => handlePull(worktree)}
+              disabled={isPulling}
+              className="text-xs"
+            >
+              <Download className={cn("w-3.5 h-3.5 mr-2", isPulling && "animate-pulse")} />
+              {isPulling ? "Pulling..." : "Pull"}
+              {behindCount > 0 && (
+                <span className="ml-auto text-[10px] bg-muted px-1.5 py-0.5 rounded">
+                  {behindCount} behind
+                </span>
+              )}
+            </DropdownMenuItem>
+            {/* Push option */}
+            <DropdownMenuItem
+              onClick={() => handlePush(worktree)}
+              disabled={isPushing || aheadCount === 0}
+              className="text-xs"
+            >
+              <Upload className={cn("w-3.5 h-3.5 mr-2", isPushing && "animate-pulse")} />
+              {isPushing ? "Pushing..." : "Push"}
+              {aheadCount > 0 && (
+                <span className="ml-auto text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">
+                  {aheadCount} ahead
+                </span>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {/* Commit changes */}
             {worktree.hasChanges && (
               <DropdownMenuItem
